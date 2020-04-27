@@ -135,3 +135,9 @@ Command used to add this rule:\
 The configuration can be verified by hosting a `nc` server on the `outside-host` first on a random port, `1024` for example, and then on `135`.\
 The `inside-host` can only connect to the server when it is not hosted on port `135`.
 
+## Task 2 - Defending against SSG Brute-force Attacks
+
+### Q 7
+`ufw`
+
+### Q 8
