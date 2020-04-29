@@ -136,8 +136,37 @@ The configuration can be verified by hosting a `nc` server on the `outside-host`
 The `inside-host` can only connect to the server when it is not hosted on port `135`.
 
 ## Task 2 - Defending against SSG Brute-force Attacks
+UFW configuration after completing this task
+```shell script
+Status: active
+Logging: on (low)
+Default: deny (incoming), deny (outgoing), deny (routed)
+New profiles: skip
 
+To                         Action      From
+--                         ------      ----
+Anywhere on eth1           ALLOW IN    10.0.20.0/24              
+10.0.10.1 22/tcp on eth0   ALLOW IN    10.0.10.0/24              
+22                         LIMIT IN    Anywhere                  
+
+Anywhere                   ALLOW OUT   10.0.20.0/24 on eth1      
+
+135 on eth0                DENY FWD    10.0.20.0/24 on eth1      
+Anywhere on eth0           ALLOW FWD   10.0.20.0/24 on eth1      
+10.0.20.2 9000 on eth1     ALLOW FWD   10.0.10.2 on eth0 
+```
 ### Q 7
-`ufw`
+UFW includes a rate limit option that is very simple to set up. To rate limit the ssh port specifically you can run the following command:
+`ufw limit to any port 22`
+This command will limit the rate of messages on port 22 that can come from a certain address every minute.
 
+As I did not specify a network interface this will also apply to any clients on the internal network, which you might want to change if you completely trust the internal network.
 ### Q 8
+I used the brute-force command available in netwox to test the configuration.
+I created a file containing several passwords, in this case I chose 35.
+Then I ran the following command to spam port 22 on the firewall with TCP packets:
+`netwox 101 -i 10.0.20.1 -p 22 -w pass.txt -L ubuntu@10.0.20.1 -n 35`
+
+This results in the following showing up in Wireshark:
+![Wireshark logs](https://raw.githubusercontent.com/LinusBF/iv1013-pf-firewall/master/ufw-limit-wireshark.png)
+In other words, the rate limit makes the firewall respond with TCP messages with the _reset_ flag enabled to indicate that the messages are not being accepted.
